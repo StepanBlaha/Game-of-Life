@@ -7,8 +7,13 @@ class Board:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self._board = self.random_state(width = self.width, height = self.height)
-        
+        self._render = None
+        self._board = None
+
+        # Create initial random board and its render
+        self.random_state(width = self.width, height = self.height)
+        self.render_state()
+
     @property
     def board(self):
         return self._board
@@ -19,8 +24,20 @@ class Board:
             self._board = new_board
         else:
             raise ValueError("Board must be a 2d array")
+    
+    @property
+    def render(self):
+        return self._render
+    
+    @render.setter
+    def render(self, new_render):
+        if isinstance(new_render, str):
+            self._render = new_render
+        else:
+            raise ValueError("Render must be a string")
         
-    def dead_state(self, width, height):
+    @staticmethod
+    def dead_state(width, height):
         """ Create a dead board state
         
         Args:
@@ -42,8 +59,6 @@ class Board:
             
             height (int): height of the desired field
 
-        Returns:
-            2D-Grid: 2d grid full of zeros and ones placed randomly
         """
         state = self.dead_state(width, height)
 
@@ -55,17 +70,15 @@ class Board:
                 else:
                     state[row][index] = 1
         
-        return state
+        # Set protected state
+        self.board = state
     
-    def next_board_state(self, board_state):
-        """Generate the next board state after 1 round of game of life
-
-        Args:
-            board_state (2D grid): grid of ones and zeros
-
-        Returns:
-            2D-grid: 2d grid with next round of game of life
+    def next_board_state(self):
         """
+        Generate the next board state after 1 round of game of life
+        """
+        board_state = self.board
+
         new_state = [[0] * len(board_state[0]) for i in range(len(board_state))]
         for row in range(len(board_state)):
             
@@ -100,18 +113,14 @@ class Board:
                     case x if x == 3 and board_state[row][index] == 0:
                         new_state[row][index] = 1
                         continue
-        return new_state
 
-    def render(self, board_state):
-        """Render the board to well readable format
+        self.board = new_state
 
-        Args:
-            board_state (2D grid): 2d grid of ones and zeros to render
-
-        Returns:
-            string: Formated grid
+    def render_state(self):
         """
-
+        Render the board to well readable format
+        """
+        board_state = self.board
         board = ""
         for row in range(len(board_state)):
             board += "|"
@@ -123,59 +132,40 @@ class Board:
                     board += "#"
             board += "|"
             board += "\n"
-        return board
+        self.render = board
     
 class Game:
     def __init__(self, width, height, state=None,sleep_time=None):
         self.board_object = Board(width, height)
-        self.board = self.board_object.board
-        self._state = False
         self.sleep_time = sleep_time
     
-    
-        
-    @property
-    def state(self):
-        return self._state
-    @state.setter
-    def state(self, new_state):
-        if type(new_state) is bool:
-            self._state = new_state
-        else:
-            raise ValueError("State must be a boolean")
-        
-        
-        
-    @property
-    def board(self):
-        return self._board
-    
-    @board.setter
-    def board(self, new_board):
-        if isinstance(new_board, list) and all(isinstance(i, list) for i in new_board):
-            self._board = new_board
-        else:
-            raise ValueError("Board must be a 2d array")
-        
     def run(self):
         alive = True
         while alive:
-            alive_cells = sum(_.count(1) for _ in self.board)
+            board = self.board_object.board
+
+            # Format render in board object
+            self.board_object.render_state()
+            # Print the render
+            print(self.board_object.render)
+
+
+            alive_cells = sum(_.count(1) for _ in board)
             # Check if any cells are alive
             if alive_cells < 1:
                 print("Life ended...")
                 alive = False
-            # Formated board
-            rendered_board =  self.board_object.render(self.board)
-            print(rendered_board)
-            # Check for infinite loop
-            if self.board == self.board_object.next_board_state(self.board) and alive == True:
+
+
+            # Create the next step
+            self.board_object.next_board_state()
+            # Check for infinite recursion
+            if board == self.board_object.board and alive == True:
                 print("Infinite recursion hit..")
                 return
             
-            self.board = self.board_object.next_board_state(self.board)
-            time.sleep(self.sleep_time if self.sleep_time else 2)
+            time.sleep(self.sleep_time if self.sleep_time else 0.1)
 
-
-g = Game(10, 10)
-g.run()
+if __name__ == "__main__":
+    Life = Game(10, 10)
+    Life.run()
