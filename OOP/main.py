@@ -51,6 +51,38 @@ class Board:
         board_state = [[0] * width for i in range(height)]
         return board_state
     
+    def load_state(self, file_path):
+        """Load custom board state
+
+        Args:
+            file_path (string): path to file to get the grid from
+
+        """
+        # Check if file is set and exists
+        if not file_path:
+            print("Missing file path...")
+            return
+
+        if not os.path.isfile(file_path):
+            print("Invalid file path...")
+            return    
+        
+        # Get the file content
+        f = open(file_path, "r")
+        content = f.read()
+
+        # Format the content into board format
+        loaded_state = []
+        row = []
+        for i in content:
+            if i == "\n":
+                loaded_state.append(row)
+                row = []
+            else:
+                row.append(int(i))
+        
+        self.board = loaded_state
+        
     def random_state(self, width, height):
         """ Create a random board state
         
