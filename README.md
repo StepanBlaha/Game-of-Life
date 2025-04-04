@@ -6,7 +6,7 @@ This repository is open to contibutions if you want to challenge your brain for 
 ## Instalation Guide
 ```
 git clone https://github.com/StepanBlaha/Game-of-Life/
-cd No-ctrlV
+cd Game-of-Life
 python -m venv env
 .\env\Scripts\activate
 pip install -r requirements.txt
